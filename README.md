@@ -6,15 +6,11 @@ The book is the primary deliverable. The code is a set of focused, executable te
 
 ## Get the book
 
-Version 1.0 PDF and EPUB downloads are distributed through the [`book-v1.0.0` GitHub release](https://github.com/lagna360/agentic-integration-patterns/releases/tag/book-v1.0.0). The public release also provides the source-only companion archive and its SHA-256 checksum manifest.
-
-## Why there is one companion module
-
-`companion/chapter-04` begins with Chapter 4's first executable route and is then extended cumulatively through Chapter 22. Later chapters add packages, contracts, and tests to that same Order Exception Desk vertical slice instead of duplicating it into separate chapter directories. The directory name therefore identifies where the executable companion begins; it does not mean that source for Chapters 5-22 is absent.
+Version 1.0 PDF and EPUB downloads will be attached to the [`book-v1.0.0` GitHub release](https://github.com/lagna360/agentic-integration-patterns/releases/tag/book-v1.0.0) only after the code and reader-facing artifacts pass release closure. Public visibility of the source repository does not by itself mean that the book has been released.
 
 ## Baseline
 
-- Java 17
+- Java 21
 - Maven 3.9.16 through the checked-in wrapper
 - Apache Camel 4.22.0
 - Spring Boot 4.1.0
@@ -50,7 +46,7 @@ The default build is keyless. A separately activated `openai` profile demonstrat
 ```shell
 export OPENAI_API_KEY=replace-with-a-real-secret
 export OPENAI_MODEL=gpt-5-mini
-./mvnw -pl companion/chapter-04 spring-boot:run \
+./mvnw -pl companion/order-exception-desk spring-boot:run \
   -Dspring-boot.run.profiles=openai
 ```
 
@@ -58,9 +54,9 @@ Never commit credentials. The live profile is outside routine release verificati
 
 ## Repository map
 
-- `companion/chapter-04/src/main/` - the incremental Order Exception Desk implementation used across Chapters 4-22
-- `companion/chapter-04/src/test/` - deterministic and forced-failure evidence
-- `companion/chapter-04/README.md` - detailed scope and deliberately missing production properties
+- `companion/order-exception-desk/src/main/` - the incremental Order Exception Desk implementation used across Chapters 4-22
+- `companion/order-exception-desk/src/test/` - deterministic and forced-failure evidence
+- `companion/order-exception-desk/README.md` - detailed scope and deliberately missing production properties
 - `REPRODUCIBILITY.md` - exact build and release-binding procedure
 - `ERRATA.md` - public correction ledger
 - `SECURITY.md` - safe reporting guidance and teaching-code scope

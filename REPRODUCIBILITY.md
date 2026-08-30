@@ -2,7 +2,7 @@
 
 ## Required environment
 
-- JDK 17
+- JDK 21
 - Maven Wrapper 3.3.4 downloading Apache Maven 3.9.16
 - Maven distribution SHA-256 `5af3b743dd8b876b5c45da33b676251e5f1687712644abb4ee519ca56e1d89ce`
 - Docker only for the optional Kafka compatibility profile
