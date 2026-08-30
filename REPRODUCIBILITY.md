@@ -27,15 +27,8 @@ Expected version 1 result: 279 tests, zero failures, zero errors, zero skips. Th
 
 Expected additional result: two Testcontainers integration tests against `apache/kafka:4.3.1`.
 
-## Release identity
+## Source identity
 
-The source release is not identified by the moving default branch. The release operator must:
+The companion baseline is not identified by a moving default branch. Record the immutable Git commit SHA after a clean build and use that SHA when referring to the verified companion from the book's technical records. A companion-specific annotated tag may be created later if the author wants one, but no tag is required to distribute the book.
 
-1. Build and test a clean private candidate commit.
-2. Record that immutable commit SHA in the book's release register and artifact manifest.
-3. Rebuild and close the PDF, EPUB, source archive, and checksums against that exact SHA.
-4. Create the annotated tag `book-v1.0.0` only after closure.
-5. Verify `git rev-parse book-v1.0.0^{commit}` equals the recorded SHA and that unauthenticated `git ls-remote` exposes the same tag.
-6. Download the published release assets independently and compare them with `SHA256SUMS`.
-
-The final tag, SHA, public visibility, and downloaded-asset checks remain release-time checks and are intentionally absent from this private staging package.
+This repository contains source code only. Do not add or attach the manuscript, PDF, EPUB, cover, publishing workspace, checksum bundle, or other book-download assets. The book's distribution channel and its artifact verification procedure are separate decisions.

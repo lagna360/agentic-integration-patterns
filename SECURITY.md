@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository contains teaching code. It is not a supported production service, security product, deployed agent runtime, or certification of the example controls. The supported source state for the first edition is the `book-v1.0.0` tag after it is published.
+This repository contains companion teaching code only. It does not distribute the book. It is not a supported production service, security product, deployed agent runtime, or certification of the example controls. A supported first-edition source state, if designated, will be identified by an immutable commit or a companion-specific tag rather than by attaching book files to this repository.
 
 ## Reporting
 

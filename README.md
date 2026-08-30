@@ -4,9 +4,9 @@ This repository contains the tested companion code for *Agentic Integration Patt
 
 The book is the primary deliverable. The code is a set of focused, executable teaching slices for Chapters 4-22, not an agent framework, production platform, or deployable reference architecture.
 
-## Get the book
+## Book availability
 
-Version 1.0 PDF and EPUB downloads will be attached to the [`book-v1.0.0` GitHub release](https://github.com/lagna360/agentic-integration-patterns/releases/tag/book-v1.0.0) only after the code and reader-facing artifacts pass release closure. Public visibility of the source repository does not by itself mean that the book has been released.
+The book is not distributed from this repository. This repository contains companion source code only; it must not contain the manuscript, PDF, EPUB, cover, publishing workspace, or book-download assets. The author has not yet selected the book's public distribution channel.
 
 ## Baseline
 
@@ -67,11 +67,10 @@ Never commit credentials. The live profile is outside routine release verificati
 |---|---|
 | Original companion source, tests, and build configuration | MIT License (`LICENSE`) |
 | Maven Wrapper scripts | Apache License 2.0 (`LICENSES/Apache-2.0.txt` and `THIRD_PARTY_NOTICES.md`) |
-| Book PDF/EPUB, prose, tables, figures, and cover | CC BY 4.0 (`LICENSE-BOOK.md`) |
 | Downloaded dependencies and container images | Their respective upstream licenses; not redistributed in the source package |
 
 Apache, Apache Camel, Camel, Apache Kafka, and Kafka are either registered trademarks or trademarks of The Apache Software Foundation in the United States and/or other countries. No endorsement by The Apache Software Foundation is implied.
 
 ## Errata and issues
 
-Use [`ERRATA.md`](ERRATA.md) for confirmed corrections and GitHub Issues for non-sensitive reports. Follow [`SECURITY.md`](SECURITY.md) for suspected security issues; do not post secrets, credentials, or exploit details in a public issue.
+Use [`ERRATA.md`](ERRATA.md) for confirmed companion-code corrections and GitHub Issues for non-sensitive code reports. Follow [`SECURITY.md`](SECURITY.md) for suspected security issues; do not post secrets, credentials, or exploit details in a public issue. Book distribution and book-specific reporting channels will be documented separately when the author chooses them.
