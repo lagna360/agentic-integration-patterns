@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "commandId": "cmd-019483",
+  "type": "InvestigateOrderException",
+  "caseId": "case-d5a30e20-f10b-38ca-9198-4834746bd37b",
+  "correlationId": "corr-order-73051",
+  "causedBy": "evt-019482",
+  "issuedAt": "2026-08-24T06:13:18Z",
+  "deadlineAt": "2026-08-24T06:23:17Z",
+  "tenantId": "tenant-ca",
+  "principalRef": "principal:order-ops-ca",
+  "requestingWorkloadRef": "workload:order-exception-case-manager",
+  "objective": {
+    "code": "investigate-order-exception",
+    "version": "v1"
+  },
+  "limits": {
+    "maxModelTurns": 4,
+    "maxToolRequests": 8,
+    "maxOutputTokens": 2000
+  },
+  "requestedCapabilities": [
+    "read-order",
+    "read-inventory"
+  ],
+  "evidence": [
+    {
+      "reference": "inventory://yyz-01/camera-battery-x2@740",
+      "sourceSystem": "inventory-ledger",
+      "sourceVersion": "740",
+      "observedAt": "2026-08-24T06:13:12Z",
+      "validUntil": "2026-08-24T06:18:12Z",
+      "trust": "AUTHORITATIVE_SOURCE"
+    }
+  ],
+  "configuration": {
+    "instructionSetRef": "order-exception-investigation-v1",
+    "policySetRef": "order-exception-ca-17",
+    "capabilityCatalogRef": "order-desk-capabilities-v1"
+  },
+  "replyContract": "order-exception-case-results-v1"
+}

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentic-integration-patterns:order-exception:investigate-order-exception:1",
+  "title": "InvestigateOrderException command, version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "commandId", "type", "caseId", "correlationId", "causedBy",
+    "issuedAt", "deadlineAt", "tenantId", "principalRef", "requestingWorkloadRef",
+    "objective", "limits", "requestedCapabilities", "evidence", "configuration", "replyContract"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "commandId": { "type": "string", "minLength": 1 },
+    "type": { "const": "InvestigateOrderException" },
+    "caseId": { "type": "string", "minLength": 1 },
+    "correlationId": { "type": "string", "minLength": 1 },
+    "causedBy": { "type": "string", "minLength": 1 },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "deadlineAt": { "type": "string", "format": "date-time" },
+    "tenantId": { "type": "string", "minLength": 1 },
+    "principalRef": { "type": "string", "minLength": 1 },
+    "requestingWorkloadRef": { "type": "string", "minLength": 1 },
+    "objective": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "version"],
+      "properties": {
+        "code": { "const": "investigate-order-exception" },
+        "version": { "const": "v1" }
+      }
+    },
+    "limits": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maxModelTurns", "maxToolRequests", "maxOutputTokens"],
+      "properties": {
+        "maxModelTurns": { "type": "integer", "minimum": 1 },
+        "maxToolRequests": { "type": "integer", "minimum": 0 },
+        "maxOutputTokens": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "requestedCapabilities": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "evidence": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["reference", "sourceSystem", "sourceVersion", "observedAt", "validUntil", "trust"],
+        "properties": {
+          "reference": { "type": "string", "minLength": 1 },
+          "sourceSystem": { "type": "string", "minLength": 1 },
+          "sourceVersion": { "type": "string", "minLength": 1 },
+          "observedAt": { "type": "string", "format": "date-time" },
+          "validUntil": { "type": "string", "format": "date-time" },
+          "trust": { "enum": ["AUTHORITATIVE_SOURCE", "UNTRUSTED_TEXT"] }
+        }
+      }
+    },
+    "configuration": {
+      "type": "object", "additionalProperties": false,
+      "required": ["instructionSetRef", "policySetRef", "capabilityCatalogRef"],
+      "properties": {
+        "instructionSetRef": { "type": "string", "minLength": 1 },
+        "policySetRef": { "type": "string", "minLength": 1 },
+        "capabilityCatalogRef": { "type": "string", "minLength": 1 }
+      }
+    },
+    "replyContract": { "const": "order-exception-case-results-v1" }
+  }
+}

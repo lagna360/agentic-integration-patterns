@@ -1,0 +1,15 @@
+spring:
+  config:
+    activate:
+      on-profile: openai
+  ai:
+    model:
+      chat: openai
+    retry:
+      max-attempts: 0
+    openai:
+      max-retries: 0
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-5-mini}

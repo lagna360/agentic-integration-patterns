@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "eventId": "evt-019482",
+  "correlationId": "corr-order-73051",
+  "tenantId": "tenant-ca",
+  "type": "InventoryShortfallDetected",
+  "occurredAt": "2026-08-24T06:13:17Z",
+  "orderId": "ord-73051",
+  "sku": "camera-battery-x2",
+  "requestedQuantity": 2,
+  "availableQuantity": 0,
+  "warehouseId": "yyz-01"
+}

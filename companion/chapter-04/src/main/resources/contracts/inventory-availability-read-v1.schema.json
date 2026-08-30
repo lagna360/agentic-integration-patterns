@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agentic-integration-patterns:inventory-availability-read:1",
+  "title": "Inventory availability read arguments v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sku", "locationId"],
+  "properties": {
+    "sku": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+    },
+    "locationId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,31}$"
+    }
+  }
+}
