@@ -8,6 +8,10 @@ The book is the primary deliverable. The code is a set of focused, executable te
 
 Version 1.0 PDF and EPUB downloads are distributed through the [`book-v1.0.0` GitHub release](https://github.com/lagna360/agentic-integration-patterns/releases/tag/book-v1.0.0). The public release also provides the source-only companion archive and its SHA-256 checksum manifest.
 
+## Why there is one companion module
+
+`companion/chapter-04` begins with Chapter 4's first executable route and is then extended cumulatively through Chapter 22. Later chapters add packages, contracts, and tests to that same Order Exception Desk vertical slice instead of duplicating it into separate chapter directories. The directory name therefore identifies where the executable companion begins; it does not mean that source for Chapters 5-22 is absent.
+
 ## Baseline
 
 - Java 17
