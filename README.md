@@ -58,7 +58,7 @@ Never commit credentials. The live profile is outside routine release verificati
 - `companion/order-exception-desk/src/test/` - deterministic and forced-failure evidence
 - `companion/order-exception-desk/README.md` - detailed scope and deliberately missing production properties
 - `REPRODUCIBILITY.md` - exact build and release-binding procedure
-- `ERRATA.md` - public correction ledger
+- `ERRATA.md` - public companion-code correction ledger
 - `SECURITY.md` - safe reporting guidance and teaching-code scope
 
 ## Licenses
