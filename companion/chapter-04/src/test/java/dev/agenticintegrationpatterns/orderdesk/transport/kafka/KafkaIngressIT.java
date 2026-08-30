@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 class KafkaIngressIT {
     private static final String TOPIC = "orderdesk.investigation.commands.v1";
+    private static final String ADMISSION_GROUP = "orderdesk-investigation-admission-v1";
 
     @Container
     static final KafkaContainer KAFKA = new KafkaContainer(
@@ -63,6 +64,7 @@ class KafkaIngressIT {
         jdbc.update("delete from ingress_quarantine");
         jdbc.update("delete from admitted_work");
         jdbc.update("delete from command_inbox");
+        awaitConsumerAssignment(Duration.ofSeconds(30));
     }
 
     @Test
@@ -112,6 +114,30 @@ class KafkaIngressIT {
             producer.flush();
             return sent;
         }
+    }
+
+    private void awaitConsumerAssignment(Duration timeout) throws Exception {
+        long deadline = System.nanoTime() + timeout.toNanos();
+        try (var admin = AdminClient.create(Map.of(
+                "bootstrap.servers", KAFKA.getBootstrapServers()))) {
+            while (System.nanoTime() < deadline) {
+                try {
+                    var groups = admin.describeConsumerGroups(java.util.List.of(ADMISSION_GROUP))
+                            .all().get(5, TimeUnit.SECONDS);
+                    var group = groups.get(ADMISSION_GROUP);
+                    boolean assigned = group != null && group.members().stream()
+                            .flatMap(member -> member.assignment().topicPartitions().stream())
+                            .anyMatch(partition -> partition.topic().equals(TOPIC));
+                    if (assigned) {
+                        return;
+                    }
+                } catch (Exception groupNotReady) {
+                    // Topic discovery and the initial group join are asynchronous.
+                }
+                Thread.sleep(100);
+            }
+        }
+        throw new AssertionError("Kafka consumer was not assigned before the test published a record");
     }
 
     private void awaitCommittedOffset(long minimumOffset, Duration timeout) throws Exception {
