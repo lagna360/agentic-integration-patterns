@@ -6,7 +6,7 @@ The book is the primary deliverable. The code is a set of focused, executable te
 
 ## Get the book
 
-Version 1.0 PDF and EPUB downloads will be attached to the [`book-v1.0.0` GitHub release](https://github.com/lagna360/agentic-integration-patterns/releases/tag/book-v1.0.0). The repository remains private until the code and reader-facing artifacts pass release closure.
+Version 1.0 PDF and EPUB downloads are distributed through the [`book-v1.0.0` GitHub release](https://github.com/lagna360/agentic-integration-patterns/releases/tag/book-v1.0.0). The public release also provides the source-only companion archive and its SHA-256 checksum manifest.
 
 ## Baseline
 
