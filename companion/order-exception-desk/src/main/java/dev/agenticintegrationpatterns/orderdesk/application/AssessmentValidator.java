@@ -35,6 +35,7 @@ public class AssessmentValidator {
             throw new InvalidAssessmentException("Manual review cannot carry a proposed action");
         }
 
+        // tag::ch4-assessment-validation[]
         Set<String> freshEvidence = request.context().evidence().stream()
                 .filter(reference -> reference.fresh())
                 .map(reference -> reference.reference())
@@ -46,6 +47,7 @@ public class AssessmentValidator {
                 && assessment.evidenceReferences().isEmpty()) {
             throw new InvalidAssessmentException("A proposal must cite verified evidence");
         }
+        // end::ch4-assessment-validation[]
         return new ValidatedAssessment(request, assessment, gatewayResult.provenance());
     }
 

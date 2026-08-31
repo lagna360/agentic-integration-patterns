@@ -17,7 +17,7 @@ From a clean checkout:
 ./mvnw -B -ntp clean verify
 ```
 
-Expected version 1 result: 279 tests, zero failures, zero errors, zero skips. The default disables the live model and Kafka consumer, so no provider key, broker, or Docker daemon is needed after dependency resolution.
+Expected version 1 result: 292 tests, zero failures, zero errors, zero skips. The default disables the live model and Kafka consumer, so no provider key, broker, or Docker daemon is needed after dependency resolution.
 
 ## Optional Kafka verification
 

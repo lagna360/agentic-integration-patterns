@@ -1,10 +1,13 @@
+# tag::ch4-default-spring[]
 spring:
   application:
     name: order-exception-desk
+# end::ch4-default-spring[]
   datasource:
     url: jdbc:h2:mem:orderdesk;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
     username: sa
     password:
+# tag::ch4-default-ai[]
   ai:
     model:
       chat: none
@@ -14,6 +17,7 @@ spring:
       audio:
         speech: none
         transcription: none
+# end::ch4-default-ai[]
 
 camel:
   main:
@@ -21,7 +25,9 @@ camel:
   springboot:
     main-run-controller: true
 
+# tag::ch4-default-orderdesk[]
 orderdesk:
+# end::ch4-default-orderdesk[]
   parallel:
     timeout-ms: 250
   kafka:
@@ -30,9 +36,11 @@ orderdesk:
     command-topic: orderdesk.investigation.commands.v1
     admission-group: orderdesk-investigation-admission-v1
     authenticated-producer-ref: workload:order-exception-case-manager
+# tag::ch4-default-routes[]
   routes:
     input-uri: direct:inventory-shortfall
     proposed-uri: seda:resolution-proposed
     manual-review-uri: seda:manual-review
     invalid-uri: seda:invalid-message
     assessment-failed-uri: seda:assessment-failed
+# end::ch4-default-routes[]

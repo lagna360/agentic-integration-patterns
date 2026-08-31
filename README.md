@@ -27,7 +27,7 @@ No model-provider key, broker, or Docker daemon is required after Maven dependen
 ./mvnw -B -ntp clean verify
 ```
 
-The version 1 baseline contains 279 deterministic tests. They prove bounded application behavior under the included fixtures; they do not certify a production deployment, provider, target system, identity platform, or infrastructure configuration.
+The version 1 baseline contains 292 deterministic tests. They prove bounded application behavior under the included fixtures; they do not certify a production deployment, provider, target system, identity platform, or infrastructure configuration.
 
 ## Verify the Kafka compatibility slice
 

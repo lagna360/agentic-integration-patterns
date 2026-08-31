@@ -10,10 +10,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderContextAggregationStrategy implements AggregationStrategy {
     @Override
+    // tag::ch4-enrichment[]
     public Exchange aggregate(Exchange original, Exchange resource) {
         var work = original.getMessage().getBody(CaseWork.class);
         var context = resource.getMessage().getBody(OrderContext.class);
         original.getMessage().setBody(new AssessmentRequest(work, context));
         return original;
     }
+    // end::ch4-enrichment[]
 }

@@ -4,7 +4,11 @@ public final class InvalidWorkEnvelopeException extends RuntimeException {
     private final Violation violation;
 
     public InvalidWorkEnvelopeException(Violation violation, String message) {
-        super(message);
+        this(violation, message, null);
+    }
+
+    public InvalidWorkEnvelopeException(Violation violation, String message, Throwable cause) {
+        super(message, cause);
         this.violation = violation;
     }
 

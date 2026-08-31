@@ -131,6 +131,7 @@ class OrderExceptionRouteTest {
         assertThat(gateway.callCount()).isZero();
     }
 
+    // tag::ch4-provider-failure-test[]
     @Test
     void providerFailureIsAttemptedOnceAndBecomesATypedFailure() throws Exception {
         gateway.fail(new AssessmentGatewayException("provider unavailable", new RuntimeException("timeout")));
@@ -147,6 +148,7 @@ class OrderExceptionRouteTest {
         assertThat(failure.tenantId()).isEqualTo("tenant-ca");
         assertThat(failure.caseId()).isNotBlank();
     }
+    // end::ch4-provider-failure-test[]
 
     @Test
     void rejectsModelEvidenceThatWasNotSupplied() throws Exception {

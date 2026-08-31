@@ -1,7 +1,8 @@
 package dev.agenticintegrationpatterns.orderdesk.context;
 
-import tools.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -34,7 +35,7 @@ public final class ArtifactNormalizer {
         if ("application/json".equals(mediaType)) {
             try {
                 return mapper.writeValueAsString(mapper.readTree(text));
-            } catch (Exception exception) {
+            } catch (JacksonException exception) {
                 throw new ContextResolutionException(
                         UNSUPPORTED_CONTENT, artifact.reference(), "JSON evidence is malformed");
             }

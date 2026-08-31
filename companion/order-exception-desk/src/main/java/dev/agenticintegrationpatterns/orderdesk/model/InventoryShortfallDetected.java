@@ -2,6 +2,7 @@ package dev.agenticintegrationpatterns.orderdesk.model;
 
 import java.time.Instant;
 
+// tag::ch4-event-contract[]
 public record InventoryShortfallDetected(
         int schemaVersion,
         String eventId,
@@ -15,3 +16,4 @@ public record InventoryShortfallDetected(
         int availableQuantity,
         String warehouseId) {
 }
+// end::ch4-event-contract[]
