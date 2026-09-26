@@ -57,10 +57,10 @@ public final class ContextResolutionService {
                         RUN_SNAPSHOT_COLLISION, request.runId(),
                         "Run ID is already bound to different admitted work");
             }
+            requireCurrentProjection(command, existing.get(), clock.instant());
             return result(admitted, existing.get());
         }
 
-        var retrievedAt = clock.instant();
         var prepared = new ArrayList<PreparedContextArtifact>();
         int usedBytes = 0;
         int estimatedTokens = 0;
@@ -75,6 +75,8 @@ public final class ContextResolutionService {
             }
             var source = matchingSources.get(0);
             var acquired = source.acquire(tenantId, reference);
+            var retrievedAt = clock.instant();
+            requireOpenRun(command, retrievedAt);
             validateAcquired(tenantId, reference, acquired, retrievedAt);
 
             byte[] sourceBytes = acquired.content();
@@ -109,6 +111,15 @@ public final class ContextResolutionService {
             prepared.add(new PreparedContextArtifact(artifact, sourceBytes));
         }
 
+        var snapshotAt = clock.instant();
+        requireOpenRun(command, snapshotAt);
+        for (var item : prepared) {
+            if (!item.artifact().validUntil().isAfter(snapshotAt)) {
+                throw new ContextResolutionException(STALE_EVIDENCE,
+                        item.artifact().reference(),
+                        "Evidence expired before the context snapshot was created");
+            }
+        }
         String snapshotId = stableId("snapshot", tenantId, request.runId(),
                 policy.selectionPolicyVersion());
         var snapshot = new ContextSnapshot(
@@ -117,14 +128,32 @@ public final class ContextResolutionService {
                 command.configuration().instructionSetRef(),
                 command.configuration().policySetRef(),
                 command.configuration().capabilityCatalogRef(),
-                retrievedAt,
+                snapshotAt,
                 policy.selectionPolicyVersion(), tokenEstimator.version(),
                 policy.maxContextBytes(), policy.maxEstimatedTokens(),
                 usedBytes, estimatedTokens,
                 prepared.stream().map(PreparedContextArtifact::artifact).toList());
-        return result(admitted, store.save(snapshot, prepared));
+        var saved = store.save(snapshot, prepared);
+        requireCurrentProjection(command, saved, clock.instant());
+        return result(admitted, saved);
     }
     // end::resolve-and-snapshot[]
+
+    /** Read retained evidence for diagnosis without authorizing a model projection. */
+    public ContextSnapshot loadForDiagnosis(ContextResolutionRequest request) {
+        validateRequest(request);
+        var admitted = request.admitted();
+        var snapshot = store.findByRun(admitted.trustedContext().tenantId(), request.runId())
+                .orElseThrow(() -> new ContextResolutionException(
+                        ARTIFACT_MISSING, request.runId(),
+                        "No retained snapshot exists for this run"));
+        if (!snapshot.admittedWorkFingerprint().equals(
+                AdmittedWorkFingerprint.compute(mapper, admitted))) {
+            throw new ContextResolutionException(RUN_SNAPSHOT_COLLISION, request.runId(),
+                    "Run ID is already bound to different admitted work");
+        }
+        return snapshot;
+    }
 
     private static void validateRequest(ContextResolutionRequest request) {
         if (request == null || request.runId() == null || request.runId().isBlank()
@@ -141,6 +170,27 @@ public final class ContextResolutionService {
                 .equals(request.admitted().trustedContext().tenantId())) {
             throw new ContextResolutionException(
                     TENANT_MISMATCH, null, "Admitted tenant identity is inconsistent");
+        }
+    }
+
+    private static void requireOpenRun(
+            InvestigateOrderException command, java.time.Instant now) {
+        if (command.deadlineAt() == null || !command.deadlineAt().isAfter(now)) {
+            throw new ContextResolutionException(DEADLINE_EXCEEDED, null,
+                    "Run deadline elapsed before an operational model projection");
+        }
+    }
+
+    private static void requireCurrentProjection(
+            InvestigateOrderException command, ContextSnapshot snapshot,
+            java.time.Instant now) {
+        requireOpenRun(command, now);
+        for (var item : snapshot.artifacts()) {
+            if (!item.validUntil().isAfter(now)) {
+                throw new ContextResolutionException(STALE_EVIDENCE,
+                        item.reference(),
+                        "Evidence expired before the model projection was returned");
+            }
         }
     }
 

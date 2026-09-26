@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class SpringAiRetryLayerTest {
     @Test
     // tag::spring-ai-zero-hidden-retries-test[]
-    void springAiAndItsOpenAiClientMakeExactlyOneRequestForA503() throws Exception {
+    void noHiddenRetriesOn503() throws Exception {
         var calls = new AtomicInteger();
         var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", exchange -> {
@@ -31,7 +31,8 @@ class SpringAiRetryLayerTest {
             exchange.close();
         });
         server.start();
-        String baseUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/v1";
+        String baseUrl = "http://127.0.0.1:"
+                + server.getAddress().getPort() + "/v1";
 
         try (var context = new SpringApplicationBuilder(OrderExceptionApplication.class)
                 .web(WebApplicationType.NONE)
@@ -42,7 +43,8 @@ class SpringAiRetryLayerTest {
                         "--spring.ai.openai.max-retries=0",
                         "--spring.ai.retry.max-attempts=0",
                         "--spring.ai.openai.chat.options.model=test-model",
-                        "--spring.datasource.url=jdbc:h2:mem:retry-layer-proof;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+                        "--spring.datasource.url=jdbc:h2:mem:retry-layer-"
+                                + "proof;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
                         "--camel.springboot.main-run-controller=false",
                         "--orderdesk.kafka.enabled=false")) {
             var model = context.getBean(ChatModel.class);

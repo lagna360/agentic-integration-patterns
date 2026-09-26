@@ -41,9 +41,9 @@ public final class GovernedCapabilityGateway {
 
     // tag::governed-invocation[]
     public CapabilityEvidence invoke(CapabilityInvocationRequest request) {
-        Instant now = clock.instant();
+        Instant startedAt = clock.instant();
         try {
-            validateRequest(request, now);
+            validateRequest(request, startedAt);
             var intent = request.intent();
             schemaValidator.validate(intent.arguments());
             var arguments = new InventoryAvailabilityArguments(
@@ -59,7 +59,12 @@ public final class GovernedCapabilityGateway {
                 throw new CapabilityGatewayException(
                         UPSTREAM_UNAVAILABLE, "Inventory dependency is unavailable");
             }
-            validateResult(request, arguments, expectedEvidence, observation, now);
+            Instant completedAt = clock.instant();
+            if (!request.context().admitted().command().deadlineAt().isAfter(completedAt)) {
+                throw new CapabilityGatewayException(DEADLINE_EXCEEDED,
+                        "The admitted run deadline elapsed before the tool result returned");
+            }
+            validateResult(request, arguments, expectedEvidence, observation, completedAt);
 
             byte[] argumentBytes = mapper.writeValueAsBytes(arguments);
             byte[] resultBytes = mapper.writeValueAsBytes(observation);
@@ -71,11 +76,11 @@ public final class GovernedCapabilityGateway {
                     request.context().snapshot().tenantId(), intent.callId(), CAPABILITY_NAME,
                     request.context().snapshot().capabilityCatalogRef(),
                     InventoryArgumentSchemaValidator.SCHEMA_ID,
-                    CapabilityDigests.sha256(argumentBytes), resultHash, now, observation);
+                    CapabilityDigests.sha256(argumentBytes), resultHash, completedAt, observation);
             recorder.success(evidence);
             return evidence;
         } catch (CapabilityGatewayException failure) {
-            recorder.failure(request, failure.reason(), now);
+            recorder.failure(request, failure.reason(), clock.instant());
             throw failure;
         } catch (JacksonException failure) {
             // Encoding a validated typed result is an internal defect, not a tool outcome.

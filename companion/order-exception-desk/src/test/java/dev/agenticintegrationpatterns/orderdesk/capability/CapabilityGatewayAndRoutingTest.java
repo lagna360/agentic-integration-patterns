@@ -31,6 +31,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -167,6 +168,69 @@ class CapabilityGatewayAndRoutingTest {
         assertThatThrownBy(() -> invalidGateway.invoke(invocation(resolved, validIntent(), 0)))
                 .isInstanceOfSatisfying(CapabilityGatewayException.class,
                         failure -> assertThat(failure.reason()).isEqualTo(RESULT_INVALID));
+    }
+
+    @Test
+    void resultProducedDuringReadIsValidatedAtReturnTime() {
+        var resolved = resolved(Set.of("read-inventory"));
+        var moving = new MovingClock();
+        InventoryAvailabilityClient laterObservation = (tenant, arguments) -> {
+            moving.advanceTo(NOW.plusSeconds(2));
+            return new InventoryAvailabilityObservation(
+                    tenant, arguments.sku(), arguments.locationId(), 0, "740",
+                    NOW.plusSeconds(1), NOW.plusSeconds(60));
+        };
+        var timedGateway = new GovernedCapabilityGateway(
+                schemaValidator, laterObservation, recorder, mapper, moving);
+
+        var evidence = timedGateway.invoke(invocation(resolved, validIntent(), 0));
+        assertThat(evidence.executedAt()).isEqualTo(NOW.plusSeconds(2));
+        assertThat(recorder.records()).singleElement()
+                .extracting(CapabilityInvocationRecorder.InvocationRecord::outcome)
+                .isEqualTo("SUCCEEDED");
+    }
+
+    @Test
+    void resultExpiredDuringReadCannotBecomeEvidence() {
+        var resolved = resolved(Set.of("read-inventory"));
+        var moving = new MovingClock();
+        InventoryAvailabilityClient lateResult = (tenant, arguments) -> {
+            moving.advanceTo(NOW.plusSeconds(5));
+            return new InventoryAvailabilityObservation(
+                    tenant, arguments.sku(), arguments.locationId(), 0, "740",
+                    NOW.minusSeconds(1), NOW.plusSeconds(4));
+        };
+        var timedGateway = new GovernedCapabilityGateway(
+                schemaValidator, lateResult, recorder, mapper, moving);
+
+        assertThatThrownBy(() -> timedGateway.invoke(invocation(resolved, validIntent(), 0)))
+                .isInstanceOfSatisfying(CapabilityGatewayException.class,
+                        failure -> assertThat(failure.reason()).isEqualTo(RESULT_INVALID));
+        assertThat(recorder.records()).singleElement()
+                .extracting(CapabilityInvocationRecorder.InvocationRecord::outcome)
+                .isEqualTo("DENIED_OR_FAILED");
+    }
+
+    @Test
+    void deadlineCrossingDuringReadCannotBecomeEvidence() {
+        var resolved = resolved(Set.of("read-inventory"));
+        var moving = new MovingClock();
+        InventoryAvailabilityClient lateResult = (tenant, arguments) -> {
+            moving.advanceTo(command.deadlineAt());
+            return new InventoryAvailabilityObservation(
+                    tenant, arguments.sku(), arguments.locationId(), 0, "740",
+                    NOW.minusSeconds(1), command.deadlineAt().plusSeconds(60));
+        };
+        var timedGateway = new GovernedCapabilityGateway(
+                schemaValidator, lateResult, recorder, mapper, moving);
+
+        assertThatThrownBy(() -> timedGateway.invoke(invocation(resolved, validIntent(), 0)))
+                .isInstanceOfSatisfying(CapabilityGatewayException.class,
+                        failure -> assertThat(failure.reason()).isEqualTo(
+                                CapabilityGatewayException.Reason.DEADLINE_EXCEEDED));
+        assertThat(recorder.records()).singleElement()
+                .extracting(CapabilityInvocationRecorder.InvocationRecord::outcome)
+                .isEqualTo("DENIED_OR_FAILED");
     }
 
     @Test
@@ -349,6 +413,15 @@ class CapabilityGatewayAndRoutingTest {
         assertThatThrownBy(() -> gateway.invoke(request))
                 .isInstanceOfSatisfying(CapabilityGatewayException.class,
                         failure -> assertThat(failure.reason()).isEqualTo(reason));
+    }
+
+    private static final class MovingClock extends Clock {
+        private Instant now = NOW;
+
+        void advanceTo(Instant instant) { now = instant; }
+        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
+        @Override public Clock withZone(ZoneId zone) { return this; }
+        @Override public Instant instant() { return now; }
     }
 
     private void drain(String endpoint) {

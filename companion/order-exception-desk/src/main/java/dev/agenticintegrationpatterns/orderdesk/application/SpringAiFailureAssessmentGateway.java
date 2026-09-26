@@ -38,13 +38,17 @@ public class SpringAiFailureAssessmentGateway implements FailureAssessmentGatewa
             // tag::ch4-live-gateway[]
             FailureAssessment assessment = chatClient.prompt()
                     .system("""
-                            You assess inventory-shortfall evidence. Return only the requested structure.
-                            Never authorize an action. Cite only supplied evidence references.
-                            If evidence is missing or ambiguous, request manual review.
+                            Assess inventory-shortfall evidence.
+                            Return only the requested structure.
+                            Never authorize an action.
+                            Cite only supplied evidence references.
+                            If evidence is missing or ambiguous,
+                            request manual review.
                             """)
                     .user("Assess this case and context: " + request)
                     .call()
-                    .entity(FailureAssessment.class, spec -> spec.useProviderStructuredOutput());
+                    .entity(FailureAssessment.class,
+                            spec -> spec.useProviderStructuredOutput());
             return new GatewayAssessment(
                     assessment,
                     new AssessmentProvenance("openai", model, INSTRUCTION_VERSION));

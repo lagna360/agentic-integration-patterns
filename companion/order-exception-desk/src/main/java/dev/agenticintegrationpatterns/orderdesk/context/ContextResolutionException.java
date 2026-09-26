@@ -21,6 +21,7 @@ public final class ContextResolutionException extends RuntimeException {
     public enum Reason {
         INVALID_REQUEST,
         RUN_SNAPSHOT_COLLISION,
+        DEADLINE_EXCEEDED,
         SOURCE_NOT_ALLOWED,
         ARTIFACT_MISSING,
         TENANT_MISMATCH,

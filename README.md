@@ -1,12 +1,12 @@
 # Agentic Integration Patterns - companion code
 
-This repository contains the tested companion code for *Agentic Integration Patterns: Engineering Action-Safe, Event-Driven AI with Apache Camel* by Pankaj Upreti.
+This repository contains the tested companion code for *Agentic Integration Patterns: Engineering Reliable, Governed AI Systems* by Pankaj Upreti.
 
 The book is the primary deliverable. The code is a set of focused, executable teaching slices for Chapters 4-22, not an agent framework, production platform, or deployable reference architecture.
 
 ## Book availability
 
-The book is not distributed from this repository. This repository contains companion source code only; it must not contain the manuscript, PDF, EPUB, cover, publishing workspace, or book-download assets. The author has not yet selected the book's public distribution channel.
+The book is not distributed from this repository. This repository contains companion source code only; it must not contain the manuscript, PDF, EPUB, cover, publishing workspace, or book-download assets. A paperback draft has been assigned ISBN 979-8-17-697036-4; the ISBN does not establish that the book is on sale.
 
 ## Baseline
 
@@ -27,7 +27,7 @@ No model-provider key, broker, or Docker daemon is required after Maven dependen
 ./mvnw -B -ntp clean verify
 ```
 
-The version 1 baseline contains 292 deterministic tests. They prove bounded application behavior under the included fixtures; they do not certify a production deployment, provider, target system, identity platform, or infrastructure configuration.
+The corrected version 1 companion contains 300 deterministic tests. They prove bounded application behavior under the included fixtures; they do not certify a production deployment, provider, target system, identity platform, or infrastructure configuration.
 
 ## Verify the Kafka compatibility slice
 
@@ -73,4 +73,4 @@ Apache, Apache Camel, Camel, Apache Kafka, and Kafka are either registered trade
 
 ## Errata and issues
 
-Use [`ERRATA.md`](ERRATA.md) for confirmed companion-code corrections and GitHub Issues for non-sensitive code reports. Follow [`SECURITY.md`](SECURITY.md) for suspected security issues; do not post secrets, credentials, or exploit details in a public issue. Book distribution and book-specific reporting channels will be documented separately when the author chooses them.
+Use [`ERRATA.md`](ERRATA.md) for confirmed companion-code corrections and GitHub Issues for non-sensitive code reports. Follow [`SECURITY.md`](SECURITY.md) for suspected security issues; do not post secrets, credentials, or exploit details in a public issue. This repository accepts reports about the companion code only.

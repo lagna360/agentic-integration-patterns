@@ -20,6 +20,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -144,6 +145,127 @@ class ContextEnrichmentTest {
                 .isEqualTo(second.artifacts().get(0).artifactId());
         assertThat(rowCount("artifact_content")).isEqualTo(1);
         assertThat(rowCount("context_snapshot")).isEqualTo(2);
+    }
+
+    @Test
+    void evidenceExpiringDuringAcquisitionNeverBecomesModelContext() {
+        var expected = command.evidence().get(0);
+        var moving = new MovingClock();
+        ArtifactSource slow = new ArtifactSource() {
+            public boolean supports(String system) {
+                return expected.sourceSystem().equals(system);
+            }
+            public SourceArtifact acquire(
+                    String tenantId, InvestigateOrderException.EvidenceReference reference) {
+                moving.advanceTo(expected.validUntil().plusSeconds(1));
+                return sourceArtifact(expected, "late evidence");
+            }
+        };
+
+        assertThatThrownBy(() -> service(slow, moving)
+                .resolve(request("run-expired-acquisition", command)))
+                .isInstanceOfSatisfying(ContextResolutionException.class,
+                        failure -> assertThat(failure.reason()).isEqualTo(STALE_EVIDENCE));
+        assertThat(rowCount("context_snapshot")).isZero();
+    }
+
+    @Test
+    void earlierEvidenceExpiringDuringLaterAcquisitionPreventsSnapshot() {
+        var original = command.evidence().get(0);
+        var first = new InvestigateOrderException.EvidenceReference(
+                "inventory://first@740", original.sourceSystem(), original.sourceVersion(),
+                original.observedAt(), NOW.plusSeconds(20), original.trust());
+        var second = new InvestigateOrderException.EvidenceReference(
+                "inventory://second@740", original.sourceSystem(), original.sourceVersion(),
+                original.observedAt(), NOW.plusSeconds(40), original.trust());
+        var moving = new MovingClock();
+        ArtifactSource sources = new ArtifactSource() {
+            public boolean supports(String system) {
+                return original.sourceSystem().equals(system);
+            }
+            public SourceArtifact acquire(
+                    String tenantId, InvestigateOrderException.EvidenceReference reference) {
+                if (reference.reference().equals(second.reference())) {
+                    moving.advanceTo(NOW.plusSeconds(21));
+                }
+                return sourceArtifact(reference, "retained bytes");
+            }
+        };
+
+        assertThatThrownBy(() -> service(sources, moving).resolve(request(
+                "run-cross-item-expiry", withEvidence(command, List.of(first, second)))))
+                .isInstanceOfSatisfying(ContextResolutionException.class,
+                        failure -> assertThat(failure.reason()).isEqualTo(STALE_EVIDENCE));
+        assertThat(rowCount("context_snapshot")).isZero();
+    }
+
+    @Test
+    void runDeadlineCrossingDuringAcquisitionPreventsSnapshot() {
+        var expected = command.evidence().get(0);
+        var moving = new MovingClock();
+        ArtifactSource slow = new ArtifactSource() {
+            public boolean supports(String system) {
+                return expected.sourceSystem().equals(system);
+            }
+            public SourceArtifact acquire(
+                    String tenantId, InvestigateOrderException.EvidenceReference reference) {
+                moving.advanceTo(command.deadlineAt());
+                return sourceArtifact(expected, "late evidence");
+            }
+        };
+
+        assertThatThrownBy(() -> service(slow, moving)
+                .resolve(request("run-expired-deadline", command)))
+                .isInstanceOfSatisfying(ContextResolutionException.class,
+                        failure -> assertThat(failure.reason()).isEqualTo(DEADLINE_EXCEEDED));
+        assertThat(rowCount("context_snapshot")).isZero();
+    }
+
+    @Test
+    void expiryDuringSnapshotPersistenceCannotReturnModelContext() {
+        var expected = command.evidence().get(0);
+        var moving = new MovingClock();
+        var slowStore = new JdbcContextSnapshotStore(jdbc) {
+            @Override
+            public ContextSnapshot save(
+                    ContextSnapshot snapshot, List<PreparedContextArtifact> prepared) {
+                var saved = super.save(snapshot, prepared);
+                moving.advanceTo(expected.validUntil());
+                return saved;
+            }
+        };
+        var source = new TrackingSource(sourceArtifact(expected, "available before save"));
+        var service = new ContextResolutionService(List.of(source), normalizer, redactor,
+                estimator, policy, slowStore, mapper, moving);
+
+        assertThatThrownBy(() -> service.resolve(request("run-expired-save", command)))
+                .isInstanceOfSatisfying(ContextResolutionException.class,
+                        failure -> assertThat(failure.reason()).isEqualTo(STALE_EVIDENCE));
+        assertThat(rowCount("context_snapshot")).isEqualTo(1);
+        assertThatThrownBy(() -> service.resolve(request("run-expired-save", command)))
+                .isInstanceOfSatisfying(ContextResolutionException.class,
+                        failure -> assertThat(failure.reason()).isEqualTo(STALE_EVIDENCE));
+        assertThat(source.calls()).isEqualTo(1);
+        assertThat(service.loadForDiagnosis(request("run-expired-save", command))
+                .artifacts().get(0).modelSafeText()).isEqualTo("available before save");
+    }
+
+    @Test
+    void expiredSuccessfulSnapshotIsDiagnosticOnlyOnLaterDelivery() {
+        var expected = command.evidence().get(0);
+        var moving = new MovingClock();
+        var source = new TrackingSource(sourceArtifact(expected, "initial evidence"));
+        var service = service(source, moving);
+        var request = request("run-later-expiry", command);
+        service.resolve(request);
+        moving.advanceTo(expected.validUntil());
+
+        assertThatThrownBy(() -> service.resolve(request))
+                .isInstanceOfSatisfying(ContextResolutionException.class,
+                        failure -> assertThat(failure.reason()).isEqualTo(STALE_EVIDENCE));
+        assertThat(source.calls()).isEqualTo(1);
+        assertThat(service.loadForDiagnosis(request).artifacts().get(0).modelSafeText())
+                .isEqualTo("initial evidence");
     }
 
     @Test
@@ -371,6 +493,15 @@ class ContextEnrichmentTest {
                     .filter(value -> value.reference().equals(reference.reference()))
                     .findFirst().orElse(null);
         }
+    }
+
+    private static final class MovingClock extends Clock {
+        private Instant now = NOW;
+
+        void advanceTo(Instant instant) { now = instant; }
+        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
+        @Override public Clock withZone(ZoneId zone) { return this; }
+        @Override public Instant instant() { return now; }
     }
 
     @TestConfiguration(proxyBeanMethods = false)
